@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,6 +35,26 @@ public class OntologyController {
     }
 
     @CrossOrigin
+    @PostMapping("/setOntologyIRI")
+    public Map<String, String> setOntologyIRI(@ModelAttribute MultipartFile file) throws IOException {
+        Map<String, String> map = new HashMap<>();
+
+        String iri = new String(file.getBytes());
+        String ontologyIRI = iri.substring(0,iri.indexOf(";"));
+        String ontologyVersionIRI = iri.substring(iri.indexOf(";")+1,iri.length());
+        System.out.println(iri + "\n" + ontologyIRI + "\n" + ontologyVersionIRI);
+
+        OWLOntologyID newOntologyID = new OWLOntologyID(IRI.create(ontologyIRI),IRI.create(ontologyVersionIRI));
+        SetOntologyID setOntologyID = new SetOntologyID(ontologyProvider.getOntology(), newOntologyID);
+        ontologyProvider.getManager().applyChange(setOntologyID);
+
+        map.put("OntologyIRI", ontologyProvider.getOntology().getOntologyID().getOntologyIRI().isPresent() ? ontologyProvider.getOntology().getOntologyID().getOntologyIRI().toString() : null);
+        map.put("OntologyVersionIRI", ontologyProvider.getOntology().getOntologyID().getVersionIRI().isPresent() ? ontologyProvider.getOntology().getOntologyID().getVersionIRI().toString() : null);
+
+        return map;
+    }
+
+    @CrossOrigin
     @GetMapping("/getOntologyPrefix")
     public Map<String, String> getOntologyMapper() {
 
@@ -44,26 +65,46 @@ public class OntologyController {
     }
 
     @CrossOrigin
-    @PostMapping("/openOntology")
-    public Boolean openOntology(@RequestParam("file") MultipartFile file) throws OWLOntologyCreationException, IOException {
+    @GetMapping("/openOntology")
+    public Boolean openOntology1() throws OWLOntologyCreationException {
 
-        File newFile = new File("C:/Users/пк/Documents/OntologyConstructor", file.getOriginalFilename());
-        newFile.createNewFile();
-        file.transferTo(newFile);
+        FileDialog dialog = new FileDialog((Frame)null, "Select File to Open", FileDialog.LOAD);
+        dialog.setFilenameFilter((File dir, String name) -> name.endsWith(".owl"));
+        dialog.setAlwaysOnTop(true);
+        dialog.setAutoRequestFocus(true);
+        dialog.toFront();
+        dialog.setVisible(true);
+        dialog.toFront();
+        String dir = dialog.getDirectory();
+        String file = dialog.getFile();
 
-        ontologyProvider.setFileOntology(newFile);
-        ontologyProvider.setOntology(ontologyProvider.getManager().loadOntologyFromOntologyDocument(newFile));
+        if(file != null){
+            File newFile = new File(dir, file);
+            ontologyProvider.setFileOntology(newFile);
+            ontologyProvider.setOntology(ontologyProvider.getManager().loadOntologyFromOntologyDocument(newFile));
+            return true;
+        }
 
-        return true;
+        return false;
     }
 
     @CrossOrigin
-    @PostMapping("/saveOntology")
-    public Boolean saveOntology(@RequestBody String fileName) throws IOException, OWLOntologyStorageException {
+    @GetMapping("/saveOntology")
+    public Boolean saveOntology() throws IOException, OWLOntologyStorageException {
 
-        File file = new File("C:/Users/пк/Documents/OntologyConstructor",fileName);
-        file.createNewFile();
-        ontologyProvider.getManager().saveOntology(ontologyProvider.getOntology(), new FileOutputStream(file));
+        FileDialog dialog = new FileDialog((Frame)null, "Select File to Save", FileDialog.LOAD);
+        dialog.setFilenameFilter((File dir, String name) -> name.endsWith(".owl"));
+        dialog.setAlwaysOnTop(true);
+        dialog.setAutoRequestFocus(true);
+        dialog.setVisible(true);
+        dialog.toFront();
+        String dir = dialog.getDirectory();
+        String file = dialog.getFile();
+
+        if(file != null){
+            File saveFile = new File(dir, file);
+            ontologyProvider.getManager().saveOntology(ontologyProvider.getOntology(), new FileOutputStream(saveFile));
+        }
 
         return true;
     }
