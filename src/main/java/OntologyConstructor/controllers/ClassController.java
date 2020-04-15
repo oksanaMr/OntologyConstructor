@@ -122,7 +122,6 @@ public class ClassController {
         OWLEntityRemover remover = new OWLEntityRemover(Collections.singleton(ontologyProvider.getOntology()));
         owlClass.accept(remover);
         return ontologyProvider.getManager().applyChanges(remover.getChanges()) == ChangeApplied.SUCCESSFULLY;
-
     }
 
     @CrossOrigin
