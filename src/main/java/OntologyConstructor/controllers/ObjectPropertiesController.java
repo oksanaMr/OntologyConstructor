@@ -55,18 +55,22 @@ public class ObjectPropertiesController {
                 .stream().map(range -> range.getIRI().toString()).collect(Collectors.toList());
         propertyDescription.put("ranges", ranges);
 
-        List<String> equivalents = reasoner.getEquivalentObjectProperties(property).getEntities()
-                .stream().map(equivalent -> equivalent.getNamedProperty().getIRI().toString()).collect(Collectors.toList());
-        equivalents.remove(propertyIRI);
+        List<String> equivalents = new ArrayList<>();
+        ontologyProvider.getOntology().getEquivalentObjectPropertiesAxioms(property)
+                .forEach(equivalent -> equivalent.getPropertiesMinus(property)
+                        .forEach(prop -> equivalents.add(prop.getNamedProperty().getIRI().toString())));
         propertyDescription.put("equivalents", equivalents);
 
-        List<String> inverseProps = reasoner.getInverseObjectProperties(property).getEntities()
-                .stream().map(inverse -> inverse.getNamedProperty().getIRI().toString()).collect(Collectors.toList());
-        inverseProps.remove(propertyIRI);
+        List<String> inverseProps = new ArrayList<>();
+        ontologyProvider.getOntology().getInverseObjectPropertyAxioms(property)
+                .forEach(inverse -> inverse.getPropertiesMinus(property)
+                        .forEach(prop -> inverseProps.add(prop.getNamedProperty().getIRI().toString())));
         propertyDescription.put("inverseProps", inverseProps);
 
-        List<String> disjointProps = reasoner.getDisjointObjectProperties(property).getFlattened()
-                .stream().map(disjoint -> disjoint.getNamedProperty().getIRI().toString()).collect(Collectors.toList());
+        List<String> disjointProps = new ArrayList<>();
+        ontologyProvider.getOntology().getDisjointObjectPropertiesAxioms(property)
+                .forEach(disjoint -> disjoint.getPropertiesMinus(property)
+                        .forEach(prop -> disjointProps.add(prop.getNamedProperty().getIRI().toString())));
         propertyDescription.put("disjointProps", disjointProps);
 
         List<String> superProps = reasoner.getSuperObjectProperties(property, true).getFlattened()
@@ -74,9 +78,9 @@ public class ObjectPropertiesController {
         superProps.remove("http://www.w3.org/2002/07/owl#topObjectProperty");
         propertyDescription.put("superProps", superProps);
 
-        List<String> subProps = reasoner.getSuperObjectProperties(property, true).getFlattened()
+        List<String> subProps = reasoner.getSubObjectProperties(property, true).getFlattened()
                 .stream().map(subProp -> subProp.getNamedProperty().getIRI().toString()).collect(Collectors.toList());
-        subProps.remove("http://www.w3.org/2002/07/owl#topObjectProperty");
+        subProps.remove("http://www.w3.org/2002/07/owl#bottomObjectProperty");
         propertyDescription.put("subProps", subProps);
 
         List<String> isFunctional = Collections.singletonList(String.valueOf(ontologyProvider.getOntology().getFunctionalObjectPropertyAxioms(property).size()));
@@ -128,15 +132,15 @@ public class ObjectPropertiesController {
         String oldIRI = iri.substring(0,iri.indexOf(";"));
         String newIRI = iri.substring(iri.indexOf(";")+1);
 
-        OWLClass owlClass = ontologyProvider.getDataFactory().getOWLClass(IRI.create(oldIRI));
+        OWLObjectProperty property = ontologyProvider.getDataFactory().getOWLObjectProperty(IRI.create(oldIRI));
 
         OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ontologyProvider.getManager(),Collections.singleton(ontologyProvider.getOntology()));
-        ontologyProvider.getManager().applyChanges(entityRenamer.changeIRI(owlClass,IRI.create(newIRI)));
+        ontologyProvider.getManager().applyChanges(entityRenamer.changeIRI(property,IRI.create(newIRI)));
 
-        owlClass = ontologyProvider.getDataFactory().getOWLClass(IRI.create(newIRI));
+        property = ontologyProvider.getDataFactory().getOWLObjectProperty(IRI.create(newIRI));
 
-        map.put("propertyIRI", owlClass.getIRI().toString());
-        map.put("propertyName", owlClass.getIRI().getShortForm());
+        map.put("propertyIRI", property.getIRI().toString());
+        map.put("propertyName", property.getIRI().getShortForm());
 
         return map;
     }
@@ -184,10 +188,10 @@ public class ObjectPropertiesController {
                 axiom = ontologyProvider.getDataFactory().getOWLDisjointObjectPropertiesAxiom(property, property1);
                 break;
             case "subProp":
-                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property, property1);
+                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property1, property);
                 break;
             case "superProp":
-                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property1, property);
+                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property, property1);
                 break;
         }
 
@@ -226,10 +230,10 @@ public class ObjectPropertiesController {
                 axiom = ontologyProvider.getDataFactory().getOWLDisjointObjectPropertiesAxiom(property, property1);
                 break;
             case "subProp":
-                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property, property1);
+                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property1, property);
                 break;
             case "superProp":
-                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property1, property);
+                axiom = ontologyProvider.getDataFactory().getOWLSubObjectPropertyOfAxiom(property, property1);
                 break;
         }
 
@@ -273,7 +277,7 @@ public class ObjectPropertiesController {
                 break;
         }
 
-        if(value == "true"){
+        if(value.equals("true")){
             AddAxiom moveAxiom = new AddAxiom (ontologyProvider.getOntology(), axiom);
             return ontologyProvider.getManager().applyChange(moveAxiom) == ChangeApplied.SUCCESSFULLY;
         }
