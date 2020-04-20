@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,7 +40,7 @@ public class ObjectPropertiesController {
     @PostMapping("/getPropertyDescription")
     public Map<String, List<String>> getPropertyDescription(@ModelAttribute MultipartFile file) throws IOException {
 
-        String propertyIRI = new String(file.getBytes());
+        String propertyIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
 
         Map<String, List<String>> propertyDescription = new HashMap<>();
         OWLObjectProperty property = ontologyProvider.getDataFactory().getOWLObjectProperty(IRI.create(propertyIRI));
@@ -112,7 +113,7 @@ public class ObjectPropertiesController {
     public Map<String, String> addNewProperty(@ModelAttribute MultipartFile file) throws IOException {
         Map<String, String> map = new HashMap<>();
 
-        String propertyIRI = new String(file.getBytes());
+        String propertyIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
         OWLObjectProperty property = ontologyProvider.getDataFactory().getOWLObjectProperty(IRI.create(propertyIRI));
 
         OWLDeclarationAxiom declarationAxiom = ontologyProvider.getDataFactory().getOWLDeclarationAxiom(property);
@@ -128,7 +129,7 @@ public class ObjectPropertiesController {
     public Map<String, String> editIRIProperty(@ModelAttribute MultipartFile file) throws IOException {
         Map<String, String> map = new HashMap<>();
 
-        String iri = new String(file.getBytes());
+        String iri = new String(file.getBytes(), StandardCharsets.UTF_8);
         String oldIRI = iri.substring(0,iri.indexOf(";"));
         String newIRI = iri.substring(iri.indexOf(";")+1);
 
@@ -149,7 +150,7 @@ public class ObjectPropertiesController {
     @PostMapping("/deleteProperty")
     public Boolean deleteProperty(@ModelAttribute MultipartFile file) throws IOException {
 
-        String propertyIRI = new String(file.getBytes());
+        String propertyIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
         OWLObjectProperty property = ontologyProvider.getDataFactory().getOWLObjectProperty(IRI.create(propertyIRI));
 
         OWLEntityRemover remover = new OWLEntityRemover(Collections.singleton(ontologyProvider.getOntology()));
@@ -161,7 +162,7 @@ public class ObjectPropertiesController {
     @PostMapping("/addAxiomProperty")
     public Boolean addAxiomProperty(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String propertyIRI = data.substring(0,data.indexOf(";"));
         String objectIRI = data.substring(data.indexOf(";")+1, data.indexOf("!"));
         String type = data.substring(data.indexOf("!")+1);
@@ -203,7 +204,7 @@ public class ObjectPropertiesController {
     @PostMapping("/deleteAxiomProperty")
     public Boolean deleteAxiomProperty(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String propertyIRI = data.substring(0,data.indexOf(";"));
         String objectIRI = data.substring(data.indexOf(";")+1, data.indexOf("!"));
         String type = data.substring(data.indexOf("!")+1);
@@ -245,7 +246,7 @@ public class ObjectPropertiesController {
     @PostMapping("/changeCharacter")
     public Boolean changeCharacter(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String propertyIRI = data.substring(0,data.indexOf(";"));
         String value = data.substring(data.indexOf(";")+1, data.indexOf("!"));
         String type = data.substring(data.indexOf("!")+1);

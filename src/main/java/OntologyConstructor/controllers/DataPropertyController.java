@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,7 @@ public class DataPropertyController {
     @PostMapping("/getPropertyDescription")
     public Map<String, List<String>> getPropertyDescription(@ModelAttribute MultipartFile file) throws IOException {
 
-        String propertyIRI = new String(file.getBytes());
+        String propertyIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
 
         Map<String, List<String>> propertyDescription = new HashMap<>();
         OWLDataProperty property = ontologyProvider.getDataFactory().getOWLDataProperty(IRI.create(propertyIRI));
@@ -100,7 +101,7 @@ public class DataPropertyController {
     public Map<String, String> addNewProperty(@ModelAttribute MultipartFile file) throws IOException {
         Map<String, String> map = new HashMap<>();
 
-        String propertyIRI = new String(file.getBytes());
+        String propertyIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
         OWLDataProperty property = ontologyProvider.getDataFactory().getOWLDataProperty(IRI.create(propertyIRI));
 
         OWLDeclarationAxiom declarationAxiom = ontologyProvider.getDataFactory().getOWLDeclarationAxiom(property);
@@ -116,7 +117,7 @@ public class DataPropertyController {
     public Map<String, String> editIRIProperty(@ModelAttribute MultipartFile file) throws IOException {
         Map<String, String> map = new HashMap<>();
 
-        String iri = new String(file.getBytes());
+        String iri = new String(file.getBytes(), StandardCharsets.UTF_8);
         String oldIRI = iri.substring(0,iri.indexOf(";"));
         String newIRI = iri.substring(iri.indexOf(";")+1);
 
@@ -137,7 +138,7 @@ public class DataPropertyController {
     @PostMapping("/deleteProperty")
     public Boolean deleteProperty(@ModelAttribute MultipartFile file) throws IOException {
 
-        String propertyIRI = new String(file.getBytes());
+        String propertyIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
         OWLDataProperty property = ontologyProvider.getDataFactory().getOWLDataProperty(IRI.create(propertyIRI));
 
         OWLEntityRemover remover = new OWLEntityRemover(Collections.singleton(ontologyProvider.getOntology()));
@@ -149,7 +150,7 @@ public class DataPropertyController {
     @PostMapping("/addAxiomProperty")
     public Boolean addAxiomProperty(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String propertyIRI = data.substring(0,data.indexOf(";"));
         String objectIRI = data.substring(data.indexOf(";")+1, data.indexOf("!"));
         String type = data.substring(data.indexOf("!")+1);
@@ -189,7 +190,7 @@ public class DataPropertyController {
     @PostMapping("/deleteAxiomProperty")
     public Boolean deleteAxiomProperty(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String propertyIRI = data.substring(0,data.indexOf(";"));
         String objectIRI = data.substring(data.indexOf(";")+1, data.indexOf("!"));
         String type = data.substring(data.indexOf("!")+1);
@@ -232,15 +233,12 @@ public class DataPropertyController {
     @PostMapping("/changeCharacter")
     public Boolean changeCharacter(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String propertyIRI = data.substring(0,data.indexOf(";"));
         String value = data.substring(data.indexOf(";")+1);
 
         OWLDataProperty property = ontologyProvider.getDataFactory().getOWLDataProperty(IRI.create(propertyIRI));
         OWLAxiom axiom = ontologyProvider.getDataFactory().getOWLFunctionalDataPropertyAxiom(property);
-
-        System.out.println(data);
-        System.out.println(value);
 
         if(value.equals("true")){
             AddAxiom moveAxiom = new AddAxiom (ontologyProvider.getOntology(), axiom);

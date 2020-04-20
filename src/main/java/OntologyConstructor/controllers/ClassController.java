@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -39,7 +40,7 @@ public class ClassController {
     @PostMapping("/getClassDescription")
     public Map<String, List<String>> getClassDescription(@ModelAttribute MultipartFile file) throws IOException {
 
-        String classIRI = new String(file.getBytes());
+        String classIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
 
         Map<String, List<String>> classDescription = new HashMap<>();
         OWLClass owlClass = ontologyProvider.getDataFactory().getOWLClass(IRI.create(classIRI));
@@ -79,7 +80,7 @@ public class ClassController {
     public Map<String, String> addNewClass(@ModelAttribute MultipartFile file) throws IOException {
         Map<String, String> map = new HashMap<>();
 
-        String classIRI = new String(file.getBytes());
+        String classIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
         OWLClass owlClass = ontologyProvider.getDataFactory().getOWLClass(IRI.create(classIRI));
 
         OWLDeclarationAxiom declarationAxiom = ontologyProvider.getDataFactory().getOWLDeclarationAxiom(owlClass);
@@ -95,7 +96,7 @@ public class ClassController {
     public Map<String, String> editIRIClass(@ModelAttribute MultipartFile file) throws IOException {
         Map<String, String> map = new HashMap<>();
 
-        String iri = new String(file.getBytes());
+        String iri = new String(file.getBytes(), StandardCharsets.UTF_8);
         String oldIRIClass = iri.substring(0,iri.indexOf(";"));
         String newIRIClass = iri.substring(iri.indexOf(";")+1);
 
@@ -116,7 +117,7 @@ public class ClassController {
     @PostMapping("/deleteClass")
     public Boolean deleteClass(@ModelAttribute MultipartFile file) throws IOException {
 
-        String classIRI = new String(file.getBytes());
+        String classIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
         OWLClass owlClass = ontologyProvider.getDataFactory().getOWLClass(IRI.create(classIRI));
 
         OWLEntityRemover remover = new OWLEntityRemover(Collections.singleton(ontologyProvider.getOntology()));
@@ -128,7 +129,7 @@ public class ClassController {
     @PostMapping("/deleteAxiomClass")
     public Boolean deleteAxiomClass(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String class1IRI = data.substring(0,data.indexOf(";"));
         String class2IRI = data.substring(data.indexOf(";")+1, data.indexOf("!"));
         String type = data.substring(data.indexOf("!")+1);
@@ -164,7 +165,7 @@ public class ClassController {
     @PostMapping("/addAxiomClass")
     public Boolean addAxiomClass(@ModelAttribute MultipartFile file) throws IOException {
 
-        String data = new String(file.getBytes());
+        String data = new String(file.getBytes(), StandardCharsets.UTF_8);
         String class1IRI = data.substring(0,data.indexOf(";"));
         String class2IRI = data.substring(data.indexOf(";")+1, data.indexOf("!"));
         String type = data.substring(data.indexOf("!")+1);
