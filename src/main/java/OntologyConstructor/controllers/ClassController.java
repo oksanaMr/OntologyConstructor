@@ -1,6 +1,6 @@
 package OntologyConstructor.controllers;
 
-import OntologyConstructor.OntologyProvider;
+import OntologyConstructor.ontology.OntologyProvider;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -49,7 +49,7 @@ public class ClassController {
         OWLReasoner reasoner = reasonerFactory.createReasoner(ontologyProvider.getOntology());
 
         List<String> individuals = reasoner.getInstances(owlClass, true).getFlattened()
-                .stream().map(individual -> individual.getIRI().toString()).collect(Collectors.toList());;
+                .stream().map(individual -> individual.getIRI().toString()).collect(Collectors.toList());
         classDescription.put("individuals", individuals);
 
         List<String> superClasses = reasoner.getSuperClasses(owlClass, true).getFlattened()

@@ -1,6 +1,6 @@
 package OntologyConstructor.controllers;
 
-import OntologyConstructor.OntologyProvider;
+import OntologyConstructor.ontology.OntologyProvider;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +11,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,10 +58,23 @@ public class OntologyController {
 
     @CrossOrigin
     @GetMapping("/getOntologyPrefix")
-    public Map<String, String> getOntologyMapper() {
+    public Map<String, String> getOntologyPrefix() {
 
         PrefixManager prefixManager = (PrefixDocumentFormat) ontologyProvider.getManager().getOntologyFormat(ontologyProvider.getOntology());
-        Map<String, String> map = prefixManager.getPrefixName2PrefixMap();
+
+        return prefixManager.getPrefixName2PrefixMap();
+    }
+
+    @CrossOrigin
+    @GetMapping("/getMetrics")
+    public Map<String, Integer> getMetrics() {
+        Map<String, Integer> map = new HashMap<>();
+
+        map.put("Количество классов", ontologyProvider.getOntology().getClassesInSignature().size());
+        map.put("Количество объектных свойств", ontologyProvider.getOntology().getObjectPropertiesInSignature().size());
+        map.put("Количество свойств данных", ontologyProvider.getOntology().getDataPropertiesInSignature().size());
+        map.put("Количество объектов", ontologyProvider.getOntology().getIndividualsInSignature().size());
+        map.put("Количество аксиом", ontologyProvider.getOntology().getAxiomCount());
 
         return map;
     }
@@ -68,13 +83,17 @@ public class OntologyController {
     @GetMapping("/openOntology")
     public Boolean openOntology1() throws OWLOntologyCreationException {
 
-        FileDialog dialog = new FileDialog((Frame)null, "Select File to Open", FileDialog.LOAD);
-        dialog.setFilenameFilter((File dir, String name) -> name.endsWith(".owl"));
-        dialog.setAlwaysOnTop(true);
-        dialog.setAutoRequestFocus(true);
-        dialog.toFront();
+        final Frame iFRAME = new Frame();
+        iFRAME.setAlwaysOnTop(true);
+        iFRAME.setLocationRelativeTo(null);
+        iFRAME.setVisible(true);
+        iFRAME.setVisible(false);
+
+        FileDialog dialog = new FileDialog(iFRAME, "Select File to Open", FileDialog.LOAD);
+        dialog.setFile("*.owl;*.txt");
         dialog.setVisible(true);
-        dialog.toFront();
+        dialog.pack();
+        iFRAME.dispose();
         String dir = dialog.getDirectory();
         String file = dialog.getFile();
 
@@ -89,21 +108,39 @@ public class OntologyController {
     }
 
     @CrossOrigin
-    @GetMapping("/saveOntology")
-    public Boolean saveOntology() throws IOException, OWLOntologyStorageException {
+    @GetMapping("/saveOntologyAs")
+    public Boolean saveOntologyAs() throws IOException, OWLOntologyStorageException {
 
-        FileDialog dialog = new FileDialog((Frame)null, "Select File to Save", FileDialog.LOAD);
-        dialog.setFilenameFilter((File dir, String name) -> name.endsWith(".owl"));
-        dialog.setAlwaysOnTop(true);
-        dialog.setAutoRequestFocus(true);
+        final Frame iFRAME = new Frame();
+        iFRAME.setAlwaysOnTop(true);
+        iFRAME.setLocationRelativeTo(null);
+        iFRAME.setVisible(true);
+        iFRAME.setVisible(false);
+
+        FileDialog dialog = new FileDialog(iFRAME, "Select File to Save", FileDialog.SAVE);
+        dialog.setFile("*.owl;*.txt");
         dialog.setVisible(true);
-        dialog.toFront();
+        iFRAME.dispose();
         String dir = dialog.getDirectory();
         String file = dialog.getFile();
 
         if(file != null){
             File saveFile = new File(dir, file);
             ontologyProvider.getManager().saveOntology(ontologyProvider.getOntology(), new FileOutputStream(saveFile));
+        }
+
+        return true;
+    }
+
+    @CrossOrigin
+    @GetMapping("/saveOntology")
+    public Boolean saveOntology() throws IOException, OWLOntologyStorageException, URISyntaxException {
+
+        if(ontologyProvider.getFileOntology().getAbsolutePath().equals(Paths.get(getClass().getClassLoader().getResource("baseOntology.owl").toURI()).toString())){
+            saveOntologyAs();
+        }
+        else{
+            ontologyProvider.getManager().saveOntology(ontologyProvider.getOntology());
         }
 
         return true;

@@ -1,6 +1,6 @@
 package OntologyConstructor.controllers;
 
-import OntologyConstructor.OntologyProvider;
+import OntologyConstructor.ontology.OntologyProvider;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -8,7 +8,6 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRemover;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
-import org.semanticweb.owlapi.vocab.XSDVocabulary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

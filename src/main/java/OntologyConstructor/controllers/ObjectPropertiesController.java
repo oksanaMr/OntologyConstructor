@@ -1,6 +1,6 @@
 package OntologyConstructor.controllers;
 
-import OntologyConstructor.OntologyProvider;
+import OntologyConstructor.ontology.OntologyProvider;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;

@@ -1,4 +1,4 @@
-package OntologyConstructor;
+package OntologyConstructor.ontology;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -7,17 +7,19 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 
 public class OntologyProvider {
 
     private OWLOntologyManager manager;
     private OWLOntology ontology;
     private OWLDataFactory dataFactory;
-    private File fileOntology = new File("C:/Users/пк/Documents/baseOntology1.txt");
+    private File fileOntology;
 
-    public OntologyProvider() throws OWLOntologyCreationException {
+    public OntologyProvider() throws OWLOntologyCreationException, URISyntaxException {
         manager = OWLManager.createOWLOntologyManager();
-        //ontology = manager.createOntology();
+        fileOntology = Paths.get(getClass().getClassLoader().getResource("baseOntology.owl").toURI()).toFile();
         ontology = manager.loadOntologyFromOntologyDocument(fileOntology);
         dataFactory = ontology.getOWLOntologyManager().getOWLDataFactory();
     }
