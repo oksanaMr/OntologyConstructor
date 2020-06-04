@@ -206,6 +206,24 @@ public class AnalyseOntology {
             listHangingLastOperation.add(result.getNamedIndividual("e").getIRI().getShortForm() + "\n");
         }
 
+        queryEngine.deleteSWRLRule("Q11");
         return listHangingLastOperation;
+    }
+
+    public List<String> getAllOperation(OWLOntology o, OWLNamedIndividual product, String productPrefix) throws SQWRLException, SWRLParseException {
+        List<String> listAllOperation = new ArrayList<>();
+
+        SQWRLQueryEngine queryEngine = SWRLAPIFactory.createSQWRLQueryEngine (o);
+
+        SQWRLResult result = queryEngine.runSQWRLQuery ("Q12",
+                "baseOntology:Operation(?o) ^ baseOntology:ProductProperty(?o, " + productPrefix
+                        + product.getIRI().getShortForm() + ") -> sqwrl:select(?o)");
+
+        while(result.next()){
+            listAllOperation.add(result.getNamedIndividual("o").getIRI().getShortForm() + "\n");
+        }
+
+        queryEngine.deleteSWRLRule("Q12");
+        return listAllOperation;
     }
 }

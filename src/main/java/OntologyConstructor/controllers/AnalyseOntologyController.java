@@ -44,25 +44,93 @@ public class AnalyseOntologyController {
 
     @CrossOrigin
     @PostMapping("/getAnalyse")
-    public Map<String,List<String>> getAnalyse(@ModelAttribute MultipartFile file) throws IOException, SQWRLException, SWRLParseException {
+    public Map<String,String> getAnalyse(@ModelAttribute MultipartFile file) throws IOException, SQWRLException, SWRLParseException {
 
         String productIRI = new String(file.getBytes(), StandardCharsets.UTF_8);
 
         OWLNamedIndividual product = ontologyProvider.getDataFactory().getOWLNamedIndividual(IRI.create(productIRI));
-        PrefixManager prefixManager = (PrefixDocumentFormat) ontologyProvider.getManager().getOntologyFormat(ontologyProvider.getOntology());
-        Map<String, String> prefixMap = prefixManager.getPrefixName2PrefixMap();
-        String shortPrefix = getKey(prefixMap,product.getIRI().getNamespace());
 
-        Map<String,List<String>> map = new HashMap<>();
+        PrefixManager prefixManager = (PrefixDocumentFormat) ontologyProvider.getManager().getOntologyFormat(ontologyProvider.getOntology());
+        String shortPrefix = getKey(prefixManager.getPrefixName2PrefixMap(),product.getIRI().getNamespace());
+
+        Map<String,String> map = new HashMap<>();
         AnalyseOntology analyseOntology = new AnalyseOntology();
 
-        map.put("seqOperation", analyseOntology.getSeqOperation(ontologyProvider.getOntology(),product, shortPrefix));
-        map.put("firstOperation", analyseOntology.getFirstOperation(ontologyProvider.getOntology(), product, shortPrefix));
-        map.put("lastOperation", analyseOntology.getLastOperation(ontologyProvider.getOntology(), product, shortPrefix));
-        map.put("cycle", analyseOntology.checkCycle(ontologyProvider.getOntology(),product, shortPrefix));
-        map.put("badFirstOperation", analyseOntology.getBadFirstOperation(ontologyProvider.getOntology(), product, shortPrefix));
-        map.put("badLastOperation", analyseOntology.getBadLastOperation(ontologyProvider.getOntology(), product, shortPrefix));
-        map.put("hangingOperation", analyseOntology.getHangingOperation(ontologyProvider.getOntology(), product, shortPrefix));
+        String seqOperation = "";
+        String resultAnalyse = "";
+
+        List<String> listOperation;
+        List<String> allOperation = analyseOntology.getAllOperation(ontologyProvider.getOntology(), product, shortPrefix);
+        List<String> operations;
+
+        if(allOperation.isEmpty()){
+            resultAnalyse += "Для данного продукта не найдено ни одной операции\n";
+            seqOperation += "Последовательность операций не найдена\n";
+        }
+        else {
+            listOperation = analyseOntology.getSeqOperation(ontologyProvider.getOntology(),product, shortPrefix);
+            if(listOperation.isEmpty()){
+                seqOperation += "Последовательность операций не найдена\n";
+                resultAnalyse += "Следующие операции не соединены:\n";
+                resultAnalyse += allOperation;
+            }
+            else {
+                seqOperation += listOperation;
+                operations = analyseOntology.getFirstOperation(ontologyProvider.getOntology(), product, shortPrefix);
+                if(operations.isEmpty()){
+                    resultAnalyse += "Первые операции не найдены\n";
+                }
+                else {
+                    resultAnalyse += "Первые операции:\n";
+                    resultAnalyse += operations;
+                }
+                operations.clear();
+                operations = analyseOntology.getLastOperation(ontologyProvider.getOntology(), product, shortPrefix);
+                if(operations.isEmpty()){
+                    resultAnalyse += "\nПоследние операции не найдены\n";
+                }
+                else {
+                    resultAnalyse += "\nПоследние операции:\n";
+                    resultAnalyse += operations;
+                }
+                operations.clear();
+                operations = analyseOntology.checkCycle(ontologyProvider.getOntology(),product, shortPrefix);
+                if(operations.isEmpty()){
+                    resultAnalyse += "\nЦиклов в последовательности операций не обнаружено\n";
+                }
+                else {
+                    resultAnalyse += "\nВ последовательности операций обнаружен цикл!\nОперации входящие в цикл:\n";
+                    resultAnalyse += operations;
+                }
+                operations.clear();
+                operations = analyseOntology.getBadFirstOperation(ontologyProvider.getOntology(), product, shortPrefix);
+                if(!operations.isEmpty()){
+                    resultAnalyse += "\nПоследовательность операций не полная!\nДля следующих операций не указана предыдущая операция:\n";
+                    resultAnalyse += operations;
+                }
+                operations.clear();
+                operations = analyseOntology.getBadLastOperation(ontologyProvider.getOntology(), product, shortPrefix);
+                if(!operations.isEmpty()){
+                    resultAnalyse += "\nПоследовательность операций не полная!\nДля следующих операций не указана следующая операция:\n";
+                    resultAnalyse += operations;
+                }
+                operations.clear();
+                operations = analyseOntology.getHangingOperation(ontologyProvider.getOntology(), product, shortPrefix);
+                if(!operations.isEmpty()){
+                    resultAnalyse += "\nПоследовательность операций не полная!\nОбнаружены висящие вершины:\n";
+                    resultAnalyse += operations;
+                }
+            }
+        }
+
+        seqOperation = seqOperation.replaceAll(",","");
+        seqOperation = seqOperation.replaceAll( "\\[","");
+        seqOperation = seqOperation.replaceAll( "]","");
+        resultAnalyse = resultAnalyse.replaceAll(",","");
+        resultAnalyse = resultAnalyse.replaceAll( "\\[","");
+        resultAnalyse = resultAnalyse.replaceAll( "]","");
+        map.put("seqOperation", seqOperation);
+        map.put("resultAnalyse", resultAnalyse);
 
         return map;
     }

@@ -81,7 +81,7 @@ public class OntologyController {
 
     @CrossOrigin
     @GetMapping("/openOntology")
-    public Boolean openOntology1() throws OWLOntologyCreationException {
+    public Boolean openOntology() throws OWLOntologyCreationException {
 
         final Frame iFRAME = new Frame();
         iFRAME.setAlwaysOnTop(true);
